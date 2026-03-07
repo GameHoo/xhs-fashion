@@ -14,14 +14,29 @@ description: |
 
 | 变量 | 值 | 说明 |
 |------|---|------|
-| `<venv>` | `~/.xhs-fashion/venv` | Python 虚拟环境（安装时固定路径） |
+| `<skill-dir>` | 本 SKILL.md 所在目录 | 包含 `scripts/`、`.venv/` |
+| `<venv>` | `<skill-dir>/.venv` | Python 虚拟环境（由初始化脚本自动创建） |
 | `<project-root>` | 本 skill 所在 `.claude/` 目录的父目录 | 项目根目录，包含 `.env`、`config/` 等 |
-| `<skill-dir>` | 本 SKILL.md 所在目录 | 包含 `scripts/make_collage.py` |
 
 CLI 可执行文件：
 - `<venv>/bin/xhs` — 小红书搜索
 - `<venv>/bin/fashn-tryon` — 虚拟试穿
 - `<venv>/bin/python3` — 运行脚本
+
+## 环境自动初始化
+
+**在调用任何 CLI 命令之前**，必须先运行初始化脚本确保环境就绪：
+
+```bash
+VENV=$(<skill-dir>/scripts/ensure_env.sh)
+```
+
+脚本会：
+1. 检查 `<skill-dir>/.venv` 是否已存在且完整 — 如果是，秒返回 venv 路径
+2. 如果不存在，自动用 `uv` 创建 Python 3.11+ 虚拟环境并安装所有依赖
+3. 最后一行输出 venv 路径，可直接赋值给变量使用
+
+后续命令用 `$VENV/bin/xhs`、`$VENV/bin/fashn-tryon`、`$VENV/bin/python3` 调用即可。
 
 ## 运行环境适配
 

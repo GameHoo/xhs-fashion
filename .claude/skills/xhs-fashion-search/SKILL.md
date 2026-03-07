@@ -278,7 +278,7 @@ open /tmp/xhs_collage_1.jpg /tmp/xhs_collage_2.jpg /tmp/xhs_collage_3.jpg
 {
   "action": "send",
   "target": "<当前对话的 chat ID>",
-  "message": "帮你搜到了这些穿搭参考（编号 1~4）\n喜欢哪几套？告诉我编号就行（最多选 4 个）",
+  "message": "帮你搜到了这些穿搭参考（编号 1~4）\n喜欢哪几套？告诉我编号就行",
   "media": { "filePath": "/tmp/xhs_collage_1.jpg" }
 }
 ```
@@ -295,7 +295,6 @@ open /tmp/xhs_collage_1.jpg /tmp/xhs_collage_2.jpg /tmp/xhs_collage_3.jpg
 | 「下一批」「再看看」 | 用相同关键词加 `--page N` 翻页，重新拉取并过滤（重复 4.1~4.3），拼图展示 |
 | 「换个风格」「重新搜」 | 回到第 2 步或第 3 步，调整关键词后重新搜索 |
 
-选择规则：最多选 4 套。超过 4 个时提示「最多选 4 套哦，帮我缩减一下」。
 
 ### 第 5 步：虚拟试穿
 

@@ -40,6 +40,16 @@ $VENV/bin/xhs login start --wait --json
 
 > **给 AI agent 的提示**：安装完成后应主动执行登录命令并将二维码图片发送给用户，用户只需要扫码，不需要手动运行任何命令。
 
+## OpenClaw 安装 Skill
+
+OpenClaw 从 `~/.openclaw/skills/` 目录自动发现 skill。将项目中的 skill 目录链接过去即可：
+
+```bash
+ln -sf "$(pwd)/.claude/skills/xhs-fashion-search" ~/.openclaw/skills/xhs-fashion-search
+```
+
+链接后新会话自动生效，无需重启。
+
 ## CLI 命令
 
 ```bash

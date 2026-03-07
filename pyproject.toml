@@ -18,3 +18,16 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["xhs_cli"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "login: 登录集成测试 (需要 MCP 服务 + 手动扫码)",
+    "search: 搜索集成测试 (需要 MCP 服务 + 已登录)",
+]
+addopts = "-m 'not login and not search'"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]

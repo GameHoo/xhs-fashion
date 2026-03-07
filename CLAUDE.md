@@ -15,11 +15,10 @@ fashn-tryon CLI (argparse) ──HTTP──→ FASHN API (api.fashn.ai/v1)
 
 - **`xhs_cli/`** — Search CLI. Entry: `xhs_cli.app:app`. Uses subprocess to call `mcporter` for MCP tool invocations, and stdlib `urllib` for health checks and image downloads (zero external HTTP deps).
 - **`xhs-tryon/fashn_tryon/`** — Virtual try-on CLI. Entry: `fashn_tryon.cli:main`. Uses `requests` + `FashnClient` to call FASHN API. Concurrent job processing via `ThreadPoolExecutor`.
-- **`xhs-tryon/xhs_mcp/`** — Legacy Python MCP server (FastMCP + Playwright), forked from jobsonlook/xhs-mcp. **Not used in production** — the actual MCP service is the Go binary from [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp). The Python version lacks `delete_cookies` and `get_login_qrcode` tools needed by xhs CLI.
 - **`.claude/skills/xhs-fashion-search/`** — Skill definition (`SKILL.md`) + bootstrap scripts. `ensure_env.sh` handles full setup: Python venv, xiaohongshu-mcp binary download from GitHub Releases, launchd service, mcporter registration.
 - **`xiaohongshu-mcp`** — Go binary from [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp), runs on `localhost:18060`. Auto-installed by `ensure_env.sh`. Managed by launchd (`com.codex.xiaohongshu-mcp`) on macOS.
 
-This is a **uv workspace**: root `pyproject.toml` has `xhs-tryon/` as a workspace member. The root package (`xhs-fashion`) produces the `xhs` binary; the member (`jobson-xhs-mcp`) produces `fashn-tryon` and `xhs-mcp`.
+This is a **uv workspace**: root `pyproject.toml` has `xhs-tryon/` as a workspace member. The root package (`xhs-fashion`) produces the `xhs` binary; the member (`fashn-tryon`) produces the `fashn-tryon` binary.
 
 ## Common Commands
 
@@ -64,6 +63,4 @@ When dependencies, installation steps, or architecture change, **always update a
 
 ## Known Fragilities
 
-- `xhs-tryon/xhs_mcp/api/xhs_api_v2.py` has a hardcoded `x-s-common` header (1000+ chars) that breaks when XHS updates their API.
-- `xhsvm.js` / `xhsvm_v2.js` are obfuscated signature generators tied to XHS internal APIs — will need updating when XHS changes signing logic.
-- `xhs-tryon/xhs_mcp/` Python MCP server is legacy code, not used at runtime — the actual service is the Go binary.
+- `xiaohongshu-mcp` is a third-party Go project ([xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp)) — may need upstream updates when XHS changes their signing logic.

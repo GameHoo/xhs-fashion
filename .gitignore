@@ -5,6 +5,8 @@ __pycache__/
 *.pyc
 *.egg-info/
 .pytest_cache/
+**/uv.lock
 虚拟穿搭测试集/
 .claude/skills/skill-creator/
+.agents/
 MediaCrawler/

@@ -14,9 +14,16 @@ description: |
 
 | 变量 | 值 | 说明 |
 |------|---|------|
-| `<skill-dir>` | 本 SKILL.md 所在目录 | 包含 `scripts/`、`.venv/` |
+| `<skill-dir>` | 本 SKILL.md 所在目录（如果是符号链接，取真实路径） | 包含 `scripts/`、`.venv/` |
 | `<venv>` | `<skill-dir>/.venv` | Python 虚拟环境（由初始化脚本自动创建） |
-| `<project-root>` | 本 skill 所在 `.claude/` 目录的父目录 | 项目根目录，包含 `.env`、`config/` 等 |
+| `<project-root>` | `<skill-dir>` 往上三级目录 | 项目根目录，包含 `.env`、`config/` 等 |
+
+**路径解析**：skill 可能通过符号链接加载（如 OpenClaw 从 `~/.openclaw/skills/` 加载），必须先解析真实路径：
+
+```bash
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "<SKILL.md 的路径>")")" && pwd)
+PROJECT_ROOT=$(cd "$SKILL_DIR/../../.." && pwd)
+```
 
 CLI 可执行文件：
 - `<venv>/bin/xhs` — 小红书搜索

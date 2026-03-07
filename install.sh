@@ -4,6 +4,8 @@
 #
 # Installs to ~/.openclaw/skills/xhs-fashion-search/ by default.
 # Override with: ... | bash -s -- --dir /path/to/skill-dir
+#
+# Auto-installs: uv, mcporter. Requires: Node.js (for mcporter).
 
 set -euo pipefail
 
@@ -25,20 +27,71 @@ if [[ -z "$SKILL_DIR" ]]; then
     SKILL_DIR="$HOME/.openclaw/skills/xhs-fashion-search"
 fi
 
-echo "Installing xhs-fashion skill to: $SKILL_DIR"
+# =====================================================================
+#  Auto-install dependencies
+# =====================================================================
+
+# uv — Python package manager
+ensure_uv() {
+    if command -v uv &>/dev/null; then
+        return 0
+    fi
+    # Check common paths
+    for p in "$HOME/.local/bin/uv" "$HOME/.cargo/bin/uv" /usr/local/bin/uv /opt/homebrew/bin/uv; do
+        [[ -x "$p" ]] && return 0
+    done
+    echo "Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # Source the env so uv is available in this session
+    export PATH="$HOME/.local/bin:$PATH"
+}
+
+# mcporter — MCP service client (requires Node.js/npm)
+ensure_mcporter() {
+    if command -v mcporter &>/dev/null; then
+        return 0
+    fi
+    if ! command -v npm &>/dev/null; then
+        echo ""
+        echo "ERROR: Node.js is required for mcporter but not found."
+        echo "Install Node.js first:"
+        echo "  macOS:  brew install node"
+        echo "  Linux:  curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && sudo apt install -y nodejs"
+        echo ""
+        echo "Then re-run this installer."
+        exit 1
+    fi
+    echo "Installing mcporter..."
+    npm install -g mcporter
+}
+
+echo "=== xhs-fashion installer ==="
+echo ""
+
+ensure_uv
+ensure_mcporter
+
+# =====================================================================
+#  Download skill files
+# =====================================================================
+
+echo ""
+echo "Installing skill to: $SKILL_DIR"
 
 mkdir -p "$SKILL_DIR/scripts"
 
-# Download skill files
 echo "Downloading skill files..."
-curl -fsSL "$BASE_URL/SKILL.md"              -o "$SKILL_DIR/SKILL.md"
-curl -fsSL "$BASE_URL/scripts/ensure_env.sh" -o "$SKILL_DIR/scripts/ensure_env.sh"
-curl -fsSL "$BASE_URL/scripts/make_collage.py" -o "$SKILL_DIR/scripts/make_collage.py"
+curl -fsSL "$BASE_URL/SKILL.md"                -o "$SKILL_DIR/SKILL.md"
+curl -fsSL "$BASE_URL/scripts/ensure_env.sh"   -o "$SKILL_DIR/scripts/ensure_env.sh"
+curl -fsSL "$BASE_URL/scripts/make_collage.py"  -o "$SKILL_DIR/scripts/make_collage.py"
 chmod +x "$SKILL_DIR/scripts/ensure_env.sh"
 
-echo "Skill files downloaded. Running setup..."
+# =====================================================================
+#  Setup Python env + xiaohongshu-mcp service
+# =====================================================================
 
-# Run ensure_env.sh (it auto-detects standalone mode)
+echo "Setting up environment..."
+
 VENV=$("$SKILL_DIR/scripts/ensure_env.sh")
 
 echo ""

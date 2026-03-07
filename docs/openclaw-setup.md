@@ -4,13 +4,7 @@
 
 ## 前置依赖
 
-| 工具 | 用途 | 安装方式 |
-|------|------|---------|
-| [uv](https://docs.astral.sh/uv/) | 创建 venv、安装包、自动下载 Python >= 3.11 | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| Node.js >= 18 | mcporter 运行依赖 | `brew install node` |
-| [mcporter](https://www.npmjs.com/package/mcporter) | MCP 服务调用客户端 | `npm install -g mcporter` |
-
-> xiaohongshu-mcp 服务由 `ensure_env.sh` 自动下载和启动，无需手动安装。
+只需 **Node.js >= 18**（`brew install node`）。其余依赖由安装脚本自动安装。
 
 ## 安装步骤
 
@@ -65,9 +59,9 @@ echo 'FASHN_API_KEY=fa-xxx' >> ~/xhs-fashion/.env
 | 问题 | 解决 |
 |------|------|
 | skill 没有触发 | 检查文件存在：`ls ~/.openclaw/skills/xhs-fashion-search/SKILL.md` |
-| ensure_env.sh 报错 `uv not found` | 安装 uv：`curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| ensure_env.sh 报错 `uv not found` | 重跑 `install.sh`（会自动安装 uv） |
 | 搜索报 `service_unavailable` | 检查服务：`launchctl list \| grep xiaohongshu`，若无则重跑 `ensure_env.sh` |
 | 搜索返回 `requires_login` | 发送「重新登录小红书」让 skill 重新生成二维码 |
 | 端口 18060 被占用 | `lsof -i :18060` 查看占用进程 |
-| `mcporter` 找不到 | `npm install -g mcporter` |
+| `mcporter` 找不到 | 重跑 `install.sh`（会自动安装），或手动 `npm install -g mcporter` |
 | 试穿报错 `FASHN_API_KEY is not set` | 确认 `.env` 文件存在且包含 key（一键安装在 `~/.openclaw/skills/xhs-fashion-search/`，手动安装在项目根目录） |

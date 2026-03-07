@@ -4,13 +4,7 @@
 
 ## 前置依赖
 
-| 工具 | 用途 | 安装方式 |
-|------|------|---------|
-| [uv](https://docs.astral.sh/uv/) | 创建 venv、安装包、自动下载 Python >= 3.11 | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| Node.js >= 18 | mcporter 运行依赖 | `brew install node` |
-| [mcporter](https://www.npmjs.com/package/mcporter) | MCP 服务调用客户端 | `npm install -g mcporter` |
-
-> xiaohongshu-mcp 服务（来自 [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp)）由 `ensure_env.sh` 自动下载和启动，无需手动安装。
+只需 **Node.js >= 18**（`brew install node`）。其余依赖（uv、mcporter、xiaohongshu-mcp）由安装脚本自动安装。
 
 ## 安装
 

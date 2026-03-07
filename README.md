@@ -42,13 +42,14 @@ $VENV/bin/xhs login start --wait --json
 
 ## OpenClaw 安装 Skill
 
-OpenClaw 从 `~/.openclaw/skills/` 目录自动发现 skill。将项目中的 skill 目录链接过去即可：
+详见 [OpenClaw 安装指南](docs/openclaw-setup.md)。
+
+快速安装：
 
 ```bash
-ln -sf "$(pwd)/.claude/skills/xhs-fashion-search" ~/.openclaw/skills/xhs-fashion-search
+git clone https://github.com/GameHoo/xhs-fashion.git ~/xhs-fashion
+ln -sf ~/xhs-fashion/.claude/skills/xhs-fashion-search ~/.openclaw/skills/xhs-fashion-search
 ```
-
-链接后新会话自动生效，无需重启。
 
 ## CLI 命令
 

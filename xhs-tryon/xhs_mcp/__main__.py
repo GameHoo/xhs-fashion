@@ -42,7 +42,7 @@ mcp = FastMCP("小红书", port=args.port, lifespan=server_lifespan)
 
 def get_nodeid_token(url=None, note_ids=None):
     if note_ids is not None:
-        note_id = note_ids[0,24]
+        note_id = note_ids[0:24]
         xsec_token = note_ids[24:]
         return {"note_id": note_id, "xsec_token": xsec_token}
     parsed_url = urlparse(url)

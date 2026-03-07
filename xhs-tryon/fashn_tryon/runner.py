@@ -197,7 +197,7 @@ class TryonRunner:
                     },
                 )
                 return
-            except Exception as exc:  # requests/network/runtime local failures
+            except (FashnApiError, requests.RequestException, CliRuntimeError, OSError) as exc:
                 if self._handle_local_failure(manifest, job, exc):
                     continue
                 return

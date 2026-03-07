@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import csv
 import json
+import logging
 import os
 import re
 import shutil
@@ -16,6 +17,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+logger = logging.getLogger(__name__)
 
 SERVICE_URL = os.getenv("XHS_CLI_SERVICE_URL", "http://localhost:18060/mcp")
 LAUNCHD_LABEL = os.getenv("XHS_CLI_LAUNCHD_LABEL", "com.codex.xiaohongshu-mcp")
@@ -41,6 +43,17 @@ AUTH_HINTS = (
     "failed to load cookies",
     "请打开小红书app扫码查看",
 )
+
+# --- Timeouts (seconds) ---
+SUBPROCESS_TIMEOUT = 45          # Default hard timeout for subprocesses
+MCPORTER_TIMEOUT_MS = 30000      # Default mcporter --timeout (milliseconds)
+SERVICE_PROBE_TIMEOUT = 3        # HTTP health-check timeout
+SERVICE_START_RETRIES = 5        # Attempts to wait for service startup
+SERVICE_START_INTERVAL = 1.0     # Sleep between service startup checks
+IMAGE_DOWNLOAD_TIMEOUT = 30      # HTTP timeout for image downloads
+IMAGE_MAX_BYTES = 50 * 1024 * 1024  # 50 MB max image download size
+LOGIN_POLL_INTERVAL = 3.0        # Sleep between login poll attempts
+SEARCH_DOWNLOAD_DELAY = 0.2     # Sleep between consecutive image downloads
 
 
 class CLIError(Exception):
@@ -75,6 +88,7 @@ def load_state() -> dict[str, Any]:
     try:
         return json.loads(STATE_FILE.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
+        logger.warning("Corrupt state file %s, returning empty state", STATE_FILE)
         return {}
 
 
@@ -149,15 +163,17 @@ def run_command(
 def service_alive() -> bool:
     request = Request(SERVICE_URL, headers={"User-Agent": USER_AGENT})
     try:
-        with urlopen(request, timeout=3):
+        with urlopen(request, timeout=SERVICE_PROBE_TIMEOUT):
             return True
     except HTTPError as exc:
-        return exc.code in {200, 400, 404, 405}
-    except URLError:
+        # 400/405 mean the server is running but rejected our probe method/payload
+        return exc.code in {400, 405}
+    except (URLError, OSError):
         return False
 
 
 def ensure_service() -> None:
+    logger.debug("Checking service availability at %s", SERVICE_URL)
     if shutil.which("mcporter") is None:
         raise CLIError(
             "mcporter is not installed or not in PATH",
@@ -169,6 +185,7 @@ def ensure_service() -> None:
 
     uid = os.getuid()
     label = f"gui/{uid}/{LAUNCHD_LABEL}"
+    logger.info("Service not alive, restarting via launchctl: %s", label)
     run_command(
         ["launchctl", "kickstart", "-k", label],
         timeout=15,
@@ -177,10 +194,10 @@ def ensure_service() -> None:
         status="service_unavailable",
     )
 
-    for _ in range(5):
+    for _ in range(SERVICE_START_RETRIES):
         if service_alive():
             return
-        time.sleep(1)
+        time.sleep(SERVICE_START_INTERVAL)
 
     raise CLIError(
         "xiaohongshu-mcp service is not reachable",
@@ -193,7 +210,7 @@ def ensure_service() -> None:
     )
 
 
-def mcporter_call(expr: str, *, timeout_ms: int = 30000, output: str | None = None, hard_timeout: int = 45) -> CommandResult:
+def mcporter_call(expr: str, *, timeout_ms: int = MCPORTER_TIMEOUT_MS, output: str | None = None, hard_timeout: int = SUBPROCESS_TIMEOUT) -> CommandResult:
     args = ["mcporter", "call", expr, "--timeout", str(timeout_ms)]
     if output:
         args.extend(["--output", output])
@@ -258,7 +275,7 @@ def infer_extension(content_type: str | None, url: str) -> str:
     return ".img"
 
 
-def download_image(url: str, dest_base: Path) -> Path:
+def download_image(url: str, dest_base: Path, *, max_bytes: int = IMAGE_MAX_BYTES) -> Path:
     request = Request(
         sanitize_url(url),
         headers={
@@ -266,8 +283,13 @@ def download_image(url: str, dest_base: Path) -> Path:
             "Referer": "https://www.xiaohongshu.com/",
         },
     )
-    with urlopen(request, timeout=30) as response:
-        content = response.read()
+    with urlopen(request, timeout=IMAGE_DOWNLOAD_TIMEOUT) as response:
+        content_length = response.headers.get("Content-Length")
+        if content_length and int(content_length) > max_bytes:
+            raise ValueError(f"Image too large: {content_length} bytes (limit {max_bytes})")
+        content = response.read(max_bytes + 1)
+        if len(content) > max_bytes:
+            raise ValueError(f"Image exceeds size limit of {max_bytes} bytes")
         dest = dest_base.with_suffix(infer_extension(response.headers.get("Content-Type"), url))
     dest.write_bytes(content)
     return dest
@@ -289,6 +311,7 @@ def pending_login_state() -> tuple[bool, str, Path]:
 
 
 def probe_logged_in() -> str:
+    logger.debug("Probing login status with keyword: %s", LOGIN_PROBE_KEYWORD)
     ensure_service()
     result = mcporter_call(
         f"xiaohongshu.search_feeds(keyword: {quote_literal(LOGIN_PROBE_KEYWORD)})",
@@ -414,7 +437,7 @@ def start_login(*, force: bool = False, qr_output: Path | None = None, wait: boo
         status = login_status_payload()
         if status["status"] == "logged_in":
             return status
-        time.sleep(3)
+        time.sleep(LOGIN_POLL_INTERVAL)
 
     raise CLIError(
         "Login wait timed out",
@@ -644,6 +667,7 @@ def search_images(
     login_timeout: int,
     retry_after_login: bool = True,
 ) -> dict[str, Any]:
+    logger.info("search_images keyword=%r image_mode=%s page=%d page_size=%d", keyword, image_mode, page, page_size)
     ensure_service()
     try:
         search_payload, search_raw = _search_raw(keyword)
@@ -684,8 +708,9 @@ def search_images(
             try:
                 dest = download_image(image_url, out_dir / "images" / f"{rank:02d}_{result['feed_id']}_{index:02d}")
                 result["image_paths"].append(str(dest.relative_to(out_dir)))
-            except Exception as exc:  # noqa: BLE001
+            except (HTTPError, URLError, OSError, ValueError) as exc:
                 message = f"download failed: {image_url} ({exc})"
+                logger.warning("Image %s: %s", image_url, message)
                 errors.append({"feed_id": result["feed_id"], "error": message})
                 result["detail_error"] = f"{result['detail_error']}; {message}".strip("; ")
 
@@ -693,7 +718,7 @@ def search_images(
             errors.append({"feed_id": result["feed_id"], "error": result["detail_error"] or "image fetch failed"})
 
         results.append(result)
-        time.sleep(0.2)
+        time.sleep(SEARCH_DOWNLOAD_DELAY)
 
     payload = {
         "status": "partial" if errors else "ok",

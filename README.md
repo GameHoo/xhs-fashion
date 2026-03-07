@@ -37,14 +37,15 @@ $VENV/bin/xhs login start --wait --json
 
 ## OpenClaw 安装 Skill
 
-详见 [OpenClaw 安装指南](docs/openclaw-setup.md)。
-
-快速安装：
+一行命令，不需要 clone 整个项目：
 
 ```bash
-git clone https://github.com/GameHoo/xhs-fashion.git ~/xhs-fashion
-ln -sf ~/xhs-fashion/.claude/skills/xhs-fashion-search ~/.openclaw/skills/xhs-fashion-search
+curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh | bash
 ```
+
+脚本会自动下载 skill 文件、创建 Python 环境、安装 CLI 工具和 xiaohongshu-mcp 服务。
+
+详见 [OpenClaw 安装指南](docs/openclaw-setup.md)。
 
 ## CLI 命令
 

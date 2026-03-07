@@ -14,31 +14,27 @@
 
 ## 安装步骤
 
-### 1. 克隆项目
+### 一键安装（推荐）
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh | bash
+```
+
+脚本会自动完成：
+- 下载 skill 文件到 `~/.openclaw/skills/xhs-fashion-search/`
+- 创建 Python venv 并安装 CLI 工具（从 GitHub 安装，无需 clone 项目）
+- 下载 xiaohongshu-mcp 二进制并启动服务
+- 注册 mcporter 服务端点
+
+### 手动安装（开发者）
+
+如果想修改源码，可以 clone 项目后 symlink：
 
 ```bash
 git clone https://github.com/GameHoo/xhs-fashion.git ~/xhs-fashion
-cd ~/xhs-fashion
-```
-
-### 2. 链接 Skill 到 OpenClaw
-
-```bash
-mkdir -p ~/.openclaw/skills
 ln -sf ~/xhs-fashion/.claude/skills/xhs-fashion-search ~/.openclaw/skills/xhs-fashion-search
-```
-
-新会话自动生效，无需重启 OpenClaw。
-
-### 3. 初始化环境
-
-Skill 首次触发时会自动调用 `ensure_env.sh`，也可以手动提前执行：
-
-```bash
 ~/xhs-fashion/.claude/skills/xhs-fashion-search/scripts/ensure_env.sh
 ```
-
-脚本会自动完成：Python venv 创建、xiaohongshu-mcp 二进制下载和启动、mcporter 注册。
 
 ### 4. 配置 FASHN API Key（虚拟试穿用）
 
@@ -64,7 +60,7 @@ echo 'export FASHN_API_KEY=你的key' > ~/xhs-fashion/.env
 
 | 问题 | 解决 |
 |------|------|
-| skill 没有触发 | 检查符号链接：`ls -la ~/.openclaw/skills/xhs-fashion-search/SKILL.md` |
+| skill 没有触发 | 检查文件存在：`ls ~/.openclaw/skills/xhs-fashion-search/SKILL.md` |
 | ensure_env.sh 报错 `uv not found` | 安装 uv：`curl -LsSf https://astral.sh/uv/install.sh \| sh` |
 | 搜索报 `service_unavailable` | 检查服务：`launchctl list \| grep xiaohongshu`，若无则重跑 `ensure_env.sh` |
 | 搜索返回 `requires_login` | 发送「重新登录小红书」让 skill 重新生成二维码 |

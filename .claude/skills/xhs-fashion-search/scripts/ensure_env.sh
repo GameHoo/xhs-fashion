@@ -7,8 +7,19 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PROJECT_ROOT="$(cd "$SKILL_DIR/../../.." && pwd)"
 VENV_DIR="$SKILL_DIR/.venv"
+
+# Detect project root (may not exist in standalone install)
+_candidate="$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd)"
+if [[ -f "$_candidate/pyproject.toml" ]]; then
+    PROJECT_ROOT="$_candidate"
+    STANDALONE=false
+else
+    PROJECT_ROOT=""
+    STANDALONE=true
+fi
+
+GITHUB_REPO="GameHoo/xhs-fashion"
 
 # --- xiaohongshu-mcp settings ---
 XHS_MCP_BASE="$HOME/.agent-reach/xiaohongshu-mcp"
@@ -48,8 +59,18 @@ setup_venv() {
         "$UV" venv --python ">=3.11" "$VENV_DIR" >&2
     fi
 
-    "$UV" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT" >&2
-    "$UV" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT/xhs-tryon" >&2
+    if [[ "$STANDALONE" == true ]]; then
+        # Standalone mode: install from GitHub (no local clone needed)
+        echo "Installing from GitHub (${GITHUB_REPO})..." >&2
+        "$UV" pip install --python "$VENV_DIR/bin/python3" \
+            "xhs-fashion @ git+https://github.com/${GITHUB_REPO}.git" >&2
+        "$UV" pip install --python "$VENV_DIR/bin/python3" \
+            "jobson-xhs-mcp @ git+https://github.com/${GITHUB_REPO}.git#subdirectory=xhs-tryon" >&2
+    else
+        # Dev mode: editable install from local source
+        "$UV" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT" >&2
+        "$UV" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT/xhs-tryon" >&2
+    fi
 
     local missing=()
     [[ -x "$VENV_DIR/bin/xhs" ]] || missing+=(xhs)

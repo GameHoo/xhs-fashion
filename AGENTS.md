@@ -1,10 +1,10 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-小红书穿搭搜索 + AI 虚拟试穿。Two CLI tools: `xhs` (search XiaoHongShu for outfit inspiration) and `fashn-tryon` (virtual try-on via FASHN API). Designed as an AI skill for Claude Code and OpenClaw.
+小红书穿搭搜索 + AI 虚拟试穿。Two CLI tools: `xhs` (search XiaoHongShu for outfit inspiration) and `fashn-tryon` (virtual try-on via FASHN API). Designed as an AI skill for Codex and OpenClaw.
 
 ## Architecture
 
@@ -15,6 +15,7 @@ fashn-tryon CLI (argparse) ──HTTP──→ FASHN API (api.fashn.ai/v1)
 
 - **`xhs_cli/`** — Search CLI. Entry: `xhs_cli.app:app`. Uses subprocess to call `mcporter` for MCP tool invocations, and stdlib `urllib` for health checks and image downloads (zero external HTTP deps).
 - **`xhs-tryon/fashn_tryon/`** — Virtual try-on CLI. Entry: `fashn_tryon.cli:main`. Uses `requests` + `FashnClient` to call FASHN API. Concurrent job processing via `ThreadPoolExecutor`.
+- **`xhs-tryon/xhs_mcp/`** — Legacy Python MCP server (FastMCP + Playwright), forked from jobsonlook/xhs-mcp. **Not used in production** — the actual MCP service is the Go binary from [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp). The Python version lacks `delete_cookies` and `get_login_qrcode` tools needed by xhs CLI.
 - **`.claude/skills/xhs-fashion-search/`** — Skill definition (`SKILL.md`) + bootstrap scripts. `ensure_env.sh` handles full setup: Python venv, xiaohongshu-mcp binary download from GitHub Releases, launchd service, mcporter registration.
 - **`xiaohongshu-mcp`** — Go binary from [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp), runs on `localhost:18060`. Auto-installed by `ensure_env.sh`. Managed by launchd (`com.codex.xiaohongshu-mcp`) on macOS.
 
@@ -59,8 +60,10 @@ uv run pytest tests/test_runtime.py::TestClassName::test_name -v  # single test
 When dependencies, installation steps, or architecture change, **always update all of these**:
 - `README.md` — main setup guide
 - `docs/openclaw-setup.md` — OpenClaw-specific setup
-- `CLAUDE.md` (this file) — AI agent guidance
+- `AGENTS.md` (this file) — AI agent guidance
 
 ## Known Fragilities
 
-- `xiaohongshu-mcp` is a third-party Go project ([xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp)) — may need upstream updates when XHS changes their signing logic.
+- `xhs-tryon/xhs_mcp/api/xhs_api_v2.py` has a hardcoded `x-s-common` header (1000+ chars) that breaks when XHS updates their API.
+- `xhsvm.js` / `xhsvm_v2.js` are obfuscated signature generators tied to XHS internal APIs — will need updating when XHS changes signing logic.
+- `xhs-tryon/xhs_mcp/` Python MCP server is legacy code, not used at runtime — the actual service is the Go binary.

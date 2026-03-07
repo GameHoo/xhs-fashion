@@ -65,7 +65,7 @@ setup_venv() {
         "$UV" pip install --python "$VENV_DIR/bin/python3" \
             "xhs-fashion @ git+https://github.com/${GITHUB_REPO}.git" >&2
         "$UV" pip install --python "$VENV_DIR/bin/python3" \
-            "jobson-xhs-mcp @ git+https://github.com/${GITHUB_REPO}.git#subdirectory=xhs-tryon" >&2
+            "fashn-tryon @ git+https://github.com/${GITHUB_REPO}.git#subdirectory=xhs-tryon" >&2
     else
         # Dev mode: editable install from local source
         "$UV" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT" >&2

@@ -90,4 +90,4 @@ fashn-tryon CLI ──HTTP──→ FASHN API (api.fashn.ai/v1)
 | 端口 18060 被占用 | `lsof -i :18060` 查看占用进程 |
 | 搜索返回 `requires_login` | 运行 `$VENV/bin/xhs login start --wait --json` 重新扫码登录 |
 | `mcporter` 找不到 | `npm install -g mcporter` |
-| 虚拟试穿报 `FASHN_API_KEY is not set` | 确保 `.env` 文件存在且包含 key，运行前 `source .env` |
+| 虚拟试穿报 `FASHN_API_KEY is not set` | 确保项目根目录 `.env` 存在，内容形如 `export FASHN_API_KEY=fa-xxx`，运行前 `source .env` |

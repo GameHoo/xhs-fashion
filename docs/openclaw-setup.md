@@ -34,10 +34,10 @@ ln -sf ~/xhs-fashion/.claude/skills/xhs-fashion-search ~/.openclaw/skills/xhs-fa
 
 ```bash
 # 一键安装用户
-echo 'FASHN_API_KEY=fa-xxx' >> ~/.openclaw/skills/xhs-fashion-search/.env
+echo 'export FASHN_API_KEY=fa-xxx' >> ~/.openclaw/skills/xhs-fashion-search/.env
 
 # 手动安装用户
-echo 'FASHN_API_KEY=fa-xxx' >> ~/xhs-fashion/.env
+echo 'export FASHN_API_KEY=fa-xxx' >> ~/xhs-fashion/.env
 ```
 
 去 https://fashn.ai 注册账号获取（免费额度够用）。也可以跳过 — skill 在需要试穿时会自动提示。
@@ -64,4 +64,4 @@ echo 'FASHN_API_KEY=fa-xxx' >> ~/xhs-fashion/.env
 | 搜索返回 `requires_login` | 发送「重新登录小红书」让 skill 重新生成二维码 |
 | 端口 18060 被占用 | `lsof -i :18060` 查看占用进程 |
 | `mcporter` 找不到 | 重跑 `install.sh`（会自动安装），或手动 `npm install -g mcporter` |
-| 试穿报错 `FASHN_API_KEY is not set` | 确认 `.env` 文件存在且包含 key（一键安装在 `~/.openclaw/skills/xhs-fashion-search/`，手动安装在项目根目录） |
+| 试穿报错 `FASHN_API_KEY is not set` | 确认 `.env` 文件存在且包含 `export FASHN_API_KEY=fa-xxx`（一键安装在 `~/.openclaw/skills/xhs-fashion-search/`，手动安装在项目根目录） |

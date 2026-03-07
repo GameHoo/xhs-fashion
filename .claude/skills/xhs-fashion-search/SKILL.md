@@ -16,13 +16,21 @@ description: |
 |------|---|------|
 | `<skill-dir>` | 本 SKILL.md 所在目录（如果是符号链接，取真实路径） | 包含 `scripts/`、`.venv/` |
 | `<venv>` | `<skill-dir>/.venv` | Python 虚拟环境（由初始化脚本自动创建） |
-| `<project-root>` | `<skill-dir>` 往上三级目录 | 项目根目录，包含 `.env`、`config/` 等 |
+| `<project-root>` | 若 `<skill-dir>` 往上三级目录存在 `pyproject.toml`，则取该目录；否则留空 | 开发模式项目根目录 |
+| `<env-file>` | 开发模式用 `<project-root>/.env`；独立安装用 `<skill-dir>/.env` | `FASHN_API_KEY` 配置文件 |
 
 **路径解析**：skill 可能通过符号链接加载（如 OpenClaw 从 `~/.openclaw/skills/` 加载），必须先解析真实路径：
 
 ```bash
 SKILL_DIR=$(cd "$(dirname "$(readlink -f "<SKILL.md 的路径>")")" && pwd)
-PROJECT_ROOT=$(cd "$SKILL_DIR/../../.." && pwd)
+PROJECT_ROOT_CANDIDATE=$(cd "$SKILL_DIR/../../.." 2>/dev/null && pwd)
+if [[ -f "$PROJECT_ROOT_CANDIDATE/pyproject.toml" ]]; then
+  PROJECT_ROOT="$PROJECT_ROOT_CANDIDATE"
+  ENV_FILE="$PROJECT_ROOT/.env"
+else
+  PROJECT_ROOT=""
+  ENV_FILE="$SKILL_DIR/.env"
+fi
 ```
 
 CLI 可执行文件：
@@ -293,10 +301,10 @@ open /tmp/xhs_collage_1.jpg /tmp/xhs_collage_2.jpg /tmp/xhs_collage_3.jpg
 
 #### 5.0 前置检查：FASHN API Key
 
-在进入试穿流程前，检查 `<project-root>/.env` 文件是否存在且包含 `FASHN_API_KEY`：
+在进入试穿流程前，检查 `<env-file>` 是否存在且包含 `FASHN_API_KEY`：
 
 ```bash
-grep -q 'FASHN_API_KEY=fa-' "<project-root>/.env" 2>/dev/null && echo "ok" || echo "missing"
+grep -q 'FASHN_API_KEY=fa-' "<env-file>" 2>/dev/null && echo "ok" || echo "missing"
 ```
 
 如果缺失，提示用户：
@@ -305,10 +313,10 @@ grep -q 'FASHN_API_KEY=fa-' "<project-root>/.env" 2>/dev/null && echo "ok" || ec
 > 去 https://fashn.ai 注册一个账号就能拿到，免费额度够用的。
 > 拿到之后把 Key 发给我就行（格式是 `fa-` 开头的一串）
 
-用户提供 Key 后，写入 `<project-root>/.env`：
+用户提供 Key 后，写入 `<env-file>`：
 
 ```bash
-echo 'export FASHN_API_KEY=<用户提供的key>' > "<project-root>/.env"
+echo 'export FASHN_API_KEY=<用户提供的key>' > "<env-file>"
 ```
 
 如果 `.env` 已有其他内容，用追加模式或编辑工具更新，不要覆盖其他配置。
@@ -331,10 +339,10 @@ OpenClaw 环境下，用户发送照片后，系统会将图片保存到 `~/.ope
 
 根据用户选的编号，从第 4 步搜索结果的 `items` 中取出对应的封面图路径，然后调用 `fashn-tryon` CLI。
 
-`.env` 中包含 `FASHN_API_KEY`，必须在调用前 source 加载。
+`<env-file>` 中包含 `FASHN_API_KEY`，必须在调用前 source 加载。
 
 ```bash
-source "<project-root>/.env" && <venv>/bin/fashn-tryon run \
+source "<env-file>" && <venv>/bin/fashn-tryon run \
   --user-image <用户照片路径> \
   --model-image <选中的穿搭图1路径> \
   --model-image <选中的穿搭图2路径> \

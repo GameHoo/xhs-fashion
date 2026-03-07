@@ -4,11 +4,21 @@
 
 ## 前置依赖
 
-只需 **Node.js >= 18**（`brew install node`）。其余依赖（uv、mcporter、xiaohongshu-mcp）由安装脚本自动安装。
+源码 checkout 后直接运行 `.claude/skills/xhs-fashion-search/scripts/ensure_env.sh` 时，需要先准备：
+
+- `uv`
+- **Node.js >= 18**（`brew install node`）
+- `mcporter`（`npm install -g mcporter`）
+
+`ensure_env.sh` 现在会先检查 `uv` 和 `mcporter`，缺任何一个都会立刻退出，不再继续返回一个“看起来可用”的 venv 路径。
 
 ## 安装
 
 ```bash
+# 0. 先装前置依赖
+curl -LsSf https://astral.sh/uv/install.sh | sh
+npm install -g mcporter
+
 # 1. 一键初始化（Python venv + xiaohongshu-mcp 服务 + mcporter 注册）
 VENV=$(.claude/skills/xhs-fashion-search/scripts/ensure_env.sh)
 
@@ -25,6 +35,8 @@ $VENV/bin/xhs login start --wait --json
 - macOS 上配置 launchd 保活服务，Linux 上后台启动
 - 向 mcporter 注册服务端点
 
+如果 `mcporter` 缺失，或者 `xiaohongshu-mcp` 最终没有成功启动，脚本会直接失败退出。
+
 已安装过的环境重复运行会秒返回（幂等）。
 
 > **给 AI agent 的提示**：安装完成后应主动执行登录命令并将二维码图片发送给用户，用户只需要扫码，不需要手动运行任何命令。
@@ -38,6 +50,7 @@ curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh
 ```
 
 脚本会自动下载 skill 文件、创建 Python 环境、安装 CLI 工具和 xiaohongshu-mcp 服务。
+这一条安装路径会自动安装 `uv` 和 `mcporter`，所以只要求本机已有 Node.js/npm。
 
 详见 [OpenClaw 安装指南](docs/openclaw-setup.md)。
 

@@ -4,7 +4,7 @@
 
 ## 前置依赖
 
-只需 **Node.js >= 18**（`brew install node`）。其余依赖由安装脚本自动安装。
+一键安装只需 **Node.js >= 18**（`brew install node`）。`install.sh` 会自动安装 `uv` 和 `mcporter`。
 
 ## 安装步骤
 
@@ -26,9 +26,13 @@ curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh
 
 ```bash
 git clone https://github.com/GameHoo/xhs-fashion.git ~/xhs-fashion
+curl -LsSf https://astral.sh/uv/install.sh | sh
+npm install -g mcporter
 ln -sf ~/xhs-fashion/.claude/skills/xhs-fashion-search ~/.openclaw/skills/xhs-fashion-search
 ~/xhs-fashion/.claude/skills/xhs-fashion-search/scripts/ensure_env.sh
 ```
+
+`ensure_env.sh` 会先检查 `uv` 和 `mcporter` 是否已在 PATH 中；缺失时会直接退出，不会继续返回 venv 路径。
 
 ### 配置 FASHN API Key（虚拟试穿用，可选）
 

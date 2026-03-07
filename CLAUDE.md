@@ -15,7 +15,7 @@ fashn-tryon CLI (argparse) ──HTTP──→ FASHN API (api.fashn.ai/v1)
 
 - **`xhs_cli/`** — Search CLI. Entry: `xhs_cli.app:app`. Uses subprocess to call `mcporter` for MCP tool invocations, and stdlib `urllib` for health checks and image downloads (zero external HTTP deps).
 - **`xhs-tryon/fashn_tryon/`** — Virtual try-on CLI. Entry: `fashn_tryon.cli:main`. Uses `requests` + `FashnClient` to call FASHN API. Concurrent job processing via `ThreadPoolExecutor`.
-- **`.claude/skills/xhs-fashion-search/`** — Skill definition (`SKILL.md`) + bootstrap scripts. `ensure_env.sh` handles full setup: Python venv, xiaohongshu-mcp binary download from GitHub Releases, launchd service, mcporter registration.
+- **`.claude/skills/xhs-fashion-search/`** — Skill definition (`SKILL.md`) + bootstrap scripts. `ensure_env.sh` validates local `uv`/`mcporter` prerequisites, then sets up the Python venv, xiaohongshu-mcp binary/service, and mcporter registration. Standalone OpenClaw installs use `install.sh` to auto-install `uv` and `mcporter` first.
 - **`xiaohongshu-mcp`** — Go binary from [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp), runs on `localhost:18060`. Auto-installed by `ensure_env.sh`. Managed by launchd (`com.codex.xiaohongshu-mcp`) on macOS.
 
 This repository contains two Python packages: the root package (`xhs-fashion`) produces the `xhs` binary, and `xhs-tryon/pyproject.toml` defines the `fashn-tryon` package.
@@ -23,7 +23,7 @@ This repository contains two Python packages: the root package (`xhs-fashion`) p
 ## Common Commands
 
 ```bash
-# Environment setup (Python venv + xiaohongshu-mcp service, one command)
+# Environment setup (requires local `uv` + `mcporter` in PATH)
 VENV=$(.claude/skills/xhs-fashion-search/scripts/ensure_env.sh)
 
 # Run CLI tools

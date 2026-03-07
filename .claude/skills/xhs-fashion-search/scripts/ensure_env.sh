@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# ensure_env.sh — One-command setup: Python venv + xiaohongshu-mcp service.
-# Prints the venv bin path on success. Exit code 0 = ready, non-zero = failed.
-# Requires: uv (https://docs.astral.sh/uv/)
+# ensure_env.sh — Validate local prerequisites, then set up Python venv + xiaohongshu-mcp service.
+# Prints the venv path on success. Exit code 0 = ready, non-zero = failed.
+# Requires: uv + mcporter available in PATH.
 
 set -euo pipefail
 
@@ -20,6 +20,44 @@ else
 fi
 
 GITHUB_REPO="GameHoo/xhs-fashion"
+UV_BIN=""
+MCPORTER_BIN=""
+
+resolve_uv() {
+    local uv
+    uv="$(command -v uv 2>/dev/null || true)"
+    if [[ -n "$uv" ]]; then
+        echo "$uv"
+        return 0
+    fi
+    for p in "$HOME/.local/bin/uv" "$HOME/.cargo/bin/uv" /usr/local/bin/uv /opt/homebrew/bin/uv; do
+        if [[ -x "$p" ]]; then
+            echo "$p"
+            return 0
+        fi
+    done
+    return 1
+}
+
+require_uv() {
+    UV_BIN="$(resolve_uv || true)"
+    if [[ -n "$UV_BIN" ]]; then
+        return 0
+    fi
+    echo "ERROR: uv not found." >&2
+    echo "Install it first: curl -LsSf https://astral.sh/uv/install.sh | sh" >&2
+    return 1
+}
+
+require_mcporter() {
+    MCPORTER_BIN="$(command -v mcporter 2>/dev/null || true)"
+    if [[ -n "$MCPORTER_BIN" ]]; then
+        return 0
+    fi
+    echo "ERROR: mcporter not found in PATH." >&2
+    echo "Install Node.js/npm first if needed, then run: npm install -g mcporter" >&2
+    return 1
+}
 
 # --- xiaohongshu-mcp settings ---
 XHS_MCP_BASE="$HOME/.agent-reach/xiaohongshu-mcp"
@@ -40,36 +78,23 @@ setup_venv() {
         return 0
     fi
 
-    # Find uv
-    local UV
-    UV="$(command -v uv 2>/dev/null || true)"
-    if [[ -z "$UV" ]]; then
-        for p in "$HOME/.local/bin/uv" "$HOME/.cargo/bin/uv" /usr/local/bin/uv /opt/homebrew/bin/uv; do
-            [[ -x "$p" ]] && UV="$p" && break
-        done
-    fi
-    if [[ -z "$UV" ]]; then
-        echo "ERROR: uv not found. Install it: curl -LsSf https://astral.sh/uv/install.sh | sh" >&2
-        return 1
-    fi
-
     echo "Initializing Python environment at $VENV_DIR ..." >&2
 
     if [[ ! -x "$VENV_DIR/bin/python3" ]]; then
-        "$UV" venv --python ">=3.11" "$VENV_DIR" >&2
+        "$UV_BIN" venv --python ">=3.11" "$VENV_DIR" >&2
     fi
 
     if [[ "$STANDALONE" == true ]]; then
         # Standalone mode: install from GitHub (no local clone needed)
         echo "Installing from GitHub (${GITHUB_REPO})..." >&2
-        "$UV" pip install --python "$VENV_DIR/bin/python3" \
+        "$UV_BIN" pip install --python "$VENV_DIR/bin/python3" \
             "xhs-fashion @ git+https://github.com/${GITHUB_REPO}.git" >&2
-        "$UV" pip install --python "$VENV_DIR/bin/python3" \
+        "$UV_BIN" pip install --python "$VENV_DIR/bin/python3" \
             "fashn-tryon @ git+https://github.com/${GITHUB_REPO}.git#subdirectory=xhs-tryon" >&2
     else
         # Dev mode: editable install from local source
-        "$UV" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT" >&2
-        "$UV" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT/xhs-tryon" >&2
+        "$UV_BIN" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT" >&2
+        "$UV_BIN" pip install --python "$VENV_DIR/bin/python3" -e "$PROJECT_ROOT/xhs-tryon" >&2
     fi
 
     local missing=()
@@ -232,16 +257,15 @@ start_background() {
 
 # Register with mcporter
 ensure_mcporter_config() {
-    local MCPORTER
-    MCPORTER="$(command -v mcporter 2>/dev/null || true)"
-    [[ -z "$MCPORTER" ]] && return 0
-
     # Check if already configured
-    if "$MCPORTER" config list 2>/dev/null | grep -q "xiaohongshu"; then
+    if "$MCPORTER_BIN" config list 2>/dev/null | grep -q "xiaohongshu"; then
         return 0
     fi
 
-    "$MCPORTER" config add xiaohongshu "${XHS_MCP_URL}/mcp" >/dev/null 2>&1 || true
+    if ! "$MCPORTER_BIN" config add xiaohongshu "${XHS_MCP_URL}/mcp" >/dev/null 2>&1; then
+        echo "ERROR: Failed to register xiaohongshu with mcporter" >&2
+        return 1
+    fi
     echo "Registered xiaohongshu with mcporter" >&2
 }
 
@@ -249,7 +273,7 @@ ensure_mcporter_config() {
 setup_xhs_mcp() {
     # Already running? Done.
     if service_alive; then
-        ensure_mcporter_config
+        ensure_mcporter_config || return 1
         return 0
     fi
 
@@ -278,21 +302,23 @@ setup_xhs_mcp() {
     while (( retries-- > 0 )); do
         if service_alive; then
             echo "xiaohongshu-mcp is running on port ${XHS_MCP_PORT}" >&2
-            ensure_mcporter_config
+            ensure_mcporter_config || return 1
             return 0
         fi
         sleep 1
     done
 
-    echo "WARNING: xiaohongshu-mcp started but not yet reachable on port ${XHS_MCP_PORT}." >&2
-    echo "  It may need a few more seconds. The xhs CLI will auto-retry on first use." >&2
-    ensure_mcporter_config
+    echo "ERROR: xiaohongshu-mcp did not become reachable on port ${XHS_MCP_PORT}" >&2
+    echo "Check logs under ${XHS_MCP_BASE}/logs/ and retry after fixing the service." >&2
+    return 1
 }
 
 # =====================================================================
 #  Main
 # =====================================================================
+require_uv || exit 1
+require_mcporter || exit 1
 setup_venv || exit 1
-setup_xhs_mcp || echo "WARNING: xiaohongshu-mcp setup failed. Search will not work until the service is running." >&2
+setup_xhs_mcp || exit 1
 
 echo "$VENV_DIR"

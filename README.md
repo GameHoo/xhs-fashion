@@ -25,8 +25,8 @@ npm install -g mcporter
 # 1. 一键初始化环境（创建 venv + 安装依赖）
 VENV=$(.claude/skills/xhs-fashion-search/scripts/ensure_env.sh)
 
-# 2. 配置 FASHN API Key（虚拟试穿需要）
-echo 'export FASHN_API_KEY=fa-xxxxxxxxxxxx' > .env
+# 2. 配置 FASHN API Key（虚拟试穿需要，已有 key 直接填入，没有去 https://fashn.ai 注册）
+echo 'export FASHN_API_KEY=你的key' > .env
 
 # 3. 启动 xiaohongshu-mcp 服务
 #    mcporter 会根据 config/mcporter.json 在 localhost:18060 启动服务。

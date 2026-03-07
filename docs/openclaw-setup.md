@@ -49,13 +49,15 @@ mcporter 根据 `config/mcporter.json` 在 `localhost:18060` 启动 xiaohongshu-
 
 ### 5. 配置 FASHN API Key（虚拟试穿用）
 
-去 https://fashn.ai 注册账号获取 API Key（免费额度够用），然后：
+如果你已经有 FASHN API Key，直接写入 `.env`：
 
 ```bash
-echo 'export FASHN_API_KEY=fa-xxxxxxxxxxxx' > ~/xhs-fashion/.env
+echo 'export FASHN_API_KEY=你的key' > ~/xhs-fashion/.env
 ```
 
-也可以跳过这步 — skill 在需要试穿时会自动提示用户提供 key。
+如果还没有，去 https://fashn.ai 注册账号获取（免费额度够用）。
+
+也可以跳过这步 — skill 在需要试穿时会自动提示你提供 key。
 
 ### 6. 小红书登录
 

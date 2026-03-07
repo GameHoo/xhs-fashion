@@ -20,28 +20,10 @@ curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh
 - 下载 xiaohongshu-mcp 二进制并启动服务
 - 注册 mcporter 服务端点
 
-### 手动安装（开发者）
-
-如果想修改源码，可以 clone 项目后 symlink：
-
-```bash
-git clone https://github.com/GameHoo/xhs-fashion.git ~/xhs-fashion
-curl -LsSf https://astral.sh/uv/install.sh | sh
-npm install -g mcporter
-ln -sf ~/xhs-fashion/.claude/skills/xhs-fashion-search ~/.openclaw/skills/xhs-fashion-search
-~/xhs-fashion/.claude/skills/xhs-fashion-search/scripts/ensure_env.sh
-```
-
-`ensure_env.sh` 会先检查 `uv` 和 `mcporter` 是否已在 PATH 中；缺失时会直接退出，不会继续返回 venv 路径。
-
 ### 配置 FASHN API Key（虚拟试穿用，可选）
 
 ```bash
-# 一键安装用户
 echo 'export FASHN_API_KEY=fa-xxx' >> ~/.openclaw/skills/xhs-fashion-search/.env
-
-# 手动安装用户
-echo 'export FASHN_API_KEY=fa-xxx' >> ~/xhs-fashion/.env
 ```
 
 去 https://fashn.ai 注册账号获取（免费额度够用）。也可以跳过 — skill 在需要试穿时会自动提示。
@@ -68,4 +50,4 @@ echo 'export FASHN_API_KEY=fa-xxx' >> ~/xhs-fashion/.env
 | 搜索返回 `requires_login` | 发送「重新登录小红书」让 skill 重新生成二维码 |
 | 端口 18060 被占用 | `lsof -i :18060` 查看占用进程 |
 | `mcporter` 找不到 | 重跑 `install.sh`（会自动安装），或手动 `npm install -g mcporter` |
-| 试穿报错 `FASHN_API_KEY is not set` | 确认 `.env` 文件存在且包含 `export FASHN_API_KEY=fa-xxx`（一键安装在 `~/.openclaw/skills/xhs-fashion-search/`，手动安装在项目根目录） |
+| 试穿报错 `FASHN_API_KEY is not set` | 确认 `.env` 文件存在且包含 `export FASHN_API_KEY=fa-xxx`（在 `~/.openclaw/skills/xhs-fashion-search/`） |

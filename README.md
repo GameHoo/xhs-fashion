@@ -5,51 +5,48 @@
 ## 前置依赖
 
 - **Python >= 3.11**
+- **[uv](https://docs.astral.sh/uv/)** — Python 包管理器，用于自动创建 venv
 - **Node.js >= 18** — xhs-tryon 签名脚本需要
 - **mcporter** — MCP 服务管理器，用于启动和调用 xiaohongshu-mcp 服务
 
 ```bash
+# 安装 uv（如果还没有）
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
 # 安装 mcporter（如果还没有）
 npm install -g mcporter
 ```
 
 ## 安装
 
+环境初始化由 `ensure_env.sh` 脚本自动完成，会在 `.claude/skills/xhs-fashion-search/.venv` 下创建 venv 并安装所有依赖：
+
 ```bash
-# 1. 创建虚拟环境
-#    iCloud 路径含空格会破坏 venv shebang，所以物理目录放在 ~/.xhs-fashion/venv，
-#    项目里通过 .venv 符号链接引用。
-python3.11 -m venv ~/.xhs-fashion/venv
-ln -sf ~/.xhs-fashion/venv .venv
+# 1. 一键初始化环境（创建 venv + 安装依赖）
+VENV=$(.claude/skills/xhs-fashion-search/scripts/ensure_env.sh)
 
-# 2. 安装两个包：xhs（搜索）+ fashn-tryon（虚拟试穿）
-.venv/bin/pip install . ./xhs-tryon/
+# 2. 配置 FASHN API Key（虚拟试穿需要）
+echo 'export FASHN_API_KEY=fa-xxxxxxxxxxxx' > .env
 
-# 3. 安装 Playwright 浏览器（xhs-tryon 依赖）
-.venv/bin/playwright install chromium
-
-# 4. 配置 FASHN API Key（虚拟试穿需要）
-cp .env.example .env
-# 编辑 .env，填入你的 key：
-#   export FASHN_API_KEY=fa-xxxxxxxxxxxx
-
-# 5. 启动 xiaohongshu-mcp 服务
+# 3. 启动 xiaohongshu-mcp 服务
 #    mcporter 会根据 config/mcporter.json 在 localhost:18060 启动服务。
 mcporter start
 
-# 6. 登录小红书（首次使用前需要扫码登录）
-.venv/bin/xhs login start --wait --json
+# 4. 登录小红书（首次使用前需要扫码登录）
+$VENV/bin/xhs login start --wait --json
 # 终端会显示二维码，用小红书 App 扫码即可
 ```
 
 ## CLI 命令
 
 ```bash
+VENV=.claude/skills/xhs-fashion-search/.venv
+
 # 搜索小红书穿搭
-.venv/bin/xhs search images --keyword "男生 早春 简约 穿搭" --image-dir /tmp/xhs-search --json
+$VENV/bin/xhs search images --keyword "男生 早春 简约 穿搭" --image-dir /tmp/xhs-search --json
 
 # 虚拟试穿（需要先 source .env）
-source .env && .venv/bin/fashn-tryon run \
+source .env && $VENV/bin/fashn-tryon run \
   --user-image user.jpg \
   --model-image look.jpg \
   --output-dir /tmp/xhs-tryon \
@@ -86,4 +83,4 @@ xhs CLI  ──→  mcporter call  ──→  xiaohongshu-mcp (localhost:18060)
 
 **虚拟试穿报错 `FASHN_API_KEY is not set`**：确保运行前执行了 `source .env`。
 
-**Playwright 报错**：运行 `.venv/bin/playwright install chromium` 安装浏览器。
+**Playwright 报错**：运行 `$VENV/bin/playwright install chromium` 安装浏览器。

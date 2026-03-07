@@ -249,7 +249,7 @@ MBTI 不直接拼入搜索词，但用于辅助下一步的风格推荐排序（
 在进入试穿流程前，检查 `<project-root>/.env` 文件是否存在且包含 `FASHN_API_KEY`：
 
 ```bash
-grep -q '^FASHN_API_KEY=fa-' "<project-root>/.env" 2>/dev/null && echo "ok" || echo "missing"
+grep -q 'FASHN_API_KEY=fa-' "<project-root>/.env" 2>/dev/null && echo "ok" || echo "missing"
 ```
 
 如果缺失，提示用户：
@@ -261,7 +261,7 @@ grep -q '^FASHN_API_KEY=fa-' "<project-root>/.env" 2>/dev/null && echo "ok" || e
 用户提供 Key 后，写入 `<project-root>/.env`：
 
 ```bash
-echo 'FASHN_API_KEY=<用户提供的key>' > "<project-root>/.env"
+echo 'export FASHN_API_KEY=<用户提供的key>' > "<project-root>/.env"
 ```
 
 如果 `.env` 已有其他内容，用追加模式或编辑工具更新，不要覆盖其他配置。

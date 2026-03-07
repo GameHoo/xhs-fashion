@@ -31,7 +31,7 @@ ln -sf ~/.xhs-fashion/venv .venv
 # 4. 配置 FASHN API Key（虚拟试穿需要）
 cp .env.example .env
 # 编辑 .env，填入你的 key：
-#   FASHN_API_KEY=fa-xxxxxxxxxxxx
+#   export FASHN_API_KEY=fa-xxxxxxxxxxxx
 
 # 5. 启动 xiaohongshu-mcp 服务
 #    mcporter 会根据 config/mcporter.json 在 localhost:18060 启动服务。

@@ -142,7 +142,7 @@ download_binary() {
 
     echo "Fetching latest release from ${XHS_MCP_REPO}..." >&2
     tag="$(curl -sf "https://api.github.com/repos/${XHS_MCP_REPO}/releases/latest" \
-        | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'])" 2>/dev/null)" || {
+        | "$VENV_DIR/bin/python3" -c "import json,sys; print(json.load(sys.stdin)['tag_name'])" 2>/dev/null)" || {
         echo "ERROR: Failed to fetch latest release tag" >&2
         return 1
     }

@@ -33,9 +33,12 @@ echo 'export FASHN_API_KEY=fa-xxxxxxxxxxxx' > .env
 mcporter start
 
 # 4. 登录小红书（首次使用前需要扫码登录）
+#    返回 JSON 中 qr_image_path 字段是二维码图片路径。
+#    AI agent 应直接运行此命令并将二维码展示给用户，不要让用户自己执行。
 $VENV/bin/xhs login start --wait --json
-# 终端会显示二维码，用小红书 App 扫码即可
 ```
+
+> **给 AI agent 的提示**：安装完成后应主动执行登录命令并将二维码图片发送给用户，用户只需要扫码，不需要手动运行任何命令。
 
 ## CLI 命令
 

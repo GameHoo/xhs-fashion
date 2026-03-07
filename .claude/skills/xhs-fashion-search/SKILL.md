@@ -38,6 +38,19 @@ VENV=$(<skill-dir>/scripts/ensure_env.sh)
 
 后续命令用 `$VENV/bin/xhs`、`$VENV/bin/fashn-tryon`、`$VENV/bin/python3` 调用即可。
 
+### 环境就绪后：自动完成登录
+
+初始化完成后，**必须主动检查小红书登录状态**，不要让用户自己去跑命令：
+
+1. 运行 `$VENV/bin/xhs login status --json` 检查登录态
+2. 如果返回 `logged_out`，直接运行 `$VENV/bin/xhs login start --wait --json` 生成二维码
+3. 将二维码图片（返回 JSON 的 `qr_image_path` 字段）展示给用户，提示「用小红书 App 扫一下就行」
+   - Claude Code：用 `open` 命令打开二维码图片
+   - OpenClaw：用 `message` + `media` 发送二维码图片
+4. 命令带 `--wait` 会阻塞等待扫码完成，成功后继续后续流程
+
+> **重要**：永远不要把 CLI 命令甩给用户让他们自己执行。所有命令都应该由 agent 自己运行，用户只需要做「扫码」这一个动作。
+
 ## 运行环境适配
 
 本 skill 同时支持 **Claude Code（终端）** 和 **OpenClaw（聊天平台）** 两种环境。OpenClaw 可通过 Telegram、微信等多种渠道与用户交互。

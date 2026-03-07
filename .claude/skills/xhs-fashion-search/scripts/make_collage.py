@@ -49,21 +49,33 @@ def _draw_badge(draw: ImageDraw.ImageDraw, number: int, x: int, y: int, cell_w: 
 
 
 def make_collage(image_paths: list[str], start_number: int, output: str, cell_size: int = 600, gap: int = 6) -> str:
-    """Create a 2x2 collage from up to 4 images and return the output path."""
+    """Create a collage from 1-4 images with adaptive layout and return the output path."""
     imgs: list[Image.Image] = []
     for p in image_paths[:4]:
         img = Image.open(p).convert("RGBA")
         img.thumbnail((cell_size, cell_size), Image.LANCZOS)
         imgs.append(img)
 
-    cols, rows = 2, 2
+    n = len(imgs)
+    if n == 1:
+        cols, rows = 1, 1
+    elif n == 2:
+        cols, rows = 2, 1
+    elif n == 3:
+        cols, rows = 3, 1
+    else:
+        cols, rows = 2, 2
+
     canvas_w = cols * cell_size + (cols + 1) * gap
     canvas_h = rows * cell_size + (rows + 1) * gap
     canvas = Image.new("RGBA", (canvas_w, canvas_h), (255, 255, 255, 255))
     draw = ImageDraw.Draw(canvas)
 
     for idx, img in enumerate(imgs):
-        col, row = idx % 2, idx // 2
+        if n <= 3:
+            col, row = idx, 0
+        else:
+            col, row = idx % 2, idx // 2
         x = gap + col * (cell_size + gap) + (cell_size - img.width) // 2
         y = gap + row * (cell_size + gap) + (cell_size - img.height) // 2
         canvas.paste(img, (x, y), img)

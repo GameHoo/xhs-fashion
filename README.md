@@ -6,8 +6,8 @@
 
 | 工具 | 用途 | 安装方式 |
 |------|------|---------|
-| Python >= 3.11 | 运行 CLI | `brew install python@3.11` 或 `mise use python@3.11` |
-| [uv](https://docs.astral.sh/uv/) | 自动创建 venv | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| [uv](https://docs.astral.sh/uv/) | 创建 venv、安装包、自动下载 Python >= 3.11 | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Node.js >= 18 | mcporter 运行依赖 | `brew install node` |
 | [mcporter](https://www.npmjs.com/package/mcporter) | MCP 服务调用客户端 | `npm install -g mcporter` |
 
 > xiaohongshu-mcp 服务（来自 [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp)）由 `ensure_env.sh` 自动下载和启动，无需手动安装。

@@ -6,8 +6,8 @@
 
 | 工具 | 用途 | 安装方式 |
 |------|------|---------|
-| Python >= 3.11 | 运行 CLI | `brew install python@3.11` |
-| [uv](https://docs.astral.sh/uv/) | 自动创建 venv | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| [uv](https://docs.astral.sh/uv/) | 创建 venv、安装包、自动下载 Python >= 3.11 | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| Node.js >= 18 | mcporter 运行依赖 | `brew install node` |
 | [mcporter](https://www.npmjs.com/package/mcporter) | MCP 服务调用客户端 | `npm install -g mcporter` |
 
 > xiaohongshu-mcp 服务由 `ensure_env.sh` 自动下载和启动，无需手动安装。
@@ -36,15 +36,19 @@ ln -sf ~/xhs-fashion/.claude/skills/xhs-fashion-search ~/.openclaw/skills/xhs-fa
 ~/xhs-fashion/.claude/skills/xhs-fashion-search/scripts/ensure_env.sh
 ```
 
-### 4. 配置 FASHN API Key（虚拟试穿用）
+### 配置 FASHN API Key（虚拟试穿用，可选）
 
 ```bash
-echo 'export FASHN_API_KEY=你的key' > ~/xhs-fashion/.env
+# 一键安装用户
+echo 'FASHN_API_KEY=fa-xxx' >> ~/.openclaw/skills/xhs-fashion-search/.env
+
+# 手动安装用户
+echo 'FASHN_API_KEY=fa-xxx' >> ~/xhs-fashion/.env
 ```
 
 去 https://fashn.ai 注册账号获取（免费额度够用）。也可以跳过 — skill 在需要试穿时会自动提示。
 
-### 5. 小红书登录
+### 小红书登录
 
 不需要手动操作。用户首次使用穿搭搜索时，skill 会自动生成二维码并发送给用户扫码登录。
 
@@ -66,4 +70,4 @@ echo 'export FASHN_API_KEY=你的key' > ~/xhs-fashion/.env
 | 搜索返回 `requires_login` | 发送「重新登录小红书」让 skill 重新生成二维码 |
 | 端口 18060 被占用 | `lsof -i :18060` 查看占用进程 |
 | `mcporter` 找不到 | `npm install -g mcporter` |
-| 试穿报错 `FASHN_API_KEY is not set` | 确认 `~/xhs-fashion/.env` 文件存在且包含 key |
+| 试穿报错 `FASHN_API_KEY is not set` | 确认 `.env` 文件存在且包含 key（一键安装在 `~/.openclaw/skills/xhs-fashion-search/`，手动安装在项目根目录） |

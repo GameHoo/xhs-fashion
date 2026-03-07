@@ -344,14 +344,16 @@ def pending_login_payload(expires_at: str, qr_path: Path) -> dict[str, Any]:
 
 def login_status_payload() -> dict[str, Any]:
     pending, expires_at, qr_path = pending_login_state()
-    if pending:
-        return pending_login_payload(expires_at, qr_path)
     if COOKIE_FILE.exists():
+        if pending:
+            clear_state_pending_login()
         return {
             "status": "logged_in",
             "cookie_path": str(COOKIE_FILE),
             "auth_validation": "not_run",
         }
+    if pending:
+        return pending_login_payload(expires_at, qr_path)
     return {"status": "logged_out"}
 
 

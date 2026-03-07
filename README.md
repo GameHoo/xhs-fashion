@@ -4,39 +4,34 @@
 
 ## 前置依赖
 
-- **Python >= 3.11**
-- **[uv](https://docs.astral.sh/uv/)** — Python 包管理器，用于自动创建 venv
-- **Node.js >= 18** — xhs-tryon 签名脚本需要
-- **mcporter** — MCP 服务管理器，用于启动和调用 xiaohongshu-mcp 服务
+| 工具 | 用途 | 安装方式 |
+|------|------|---------|
+| Python >= 3.11 | 运行 CLI | `brew install python@3.11` 或 `mise use python@3.11` |
+| [uv](https://docs.astral.sh/uv/) | 自动创建 venv | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| [mcporter](https://www.npmjs.com/package/mcporter) | MCP 服务调用客户端 | `npm install -g mcporter` |
 
-```bash
-# 安装 uv（如果还没有）
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# 安装 mcporter（如果还没有）
-npm install -g mcporter
-```
+> xiaohongshu-mcp 服务（来自 [xpzouying/xiaohongshu-mcp](https://github.com/xpzouying/xiaohongshu-mcp)）由 `ensure_env.sh` 自动下载和启动，无需手动安装。
 
 ## 安装
 
-环境初始化由 `ensure_env.sh` 脚本自动完成，会在 `.claude/skills/xhs-fashion-search/.venv` 下创建 venv 并安装所有依赖：
-
 ```bash
-# 1. 一键初始化环境（创建 venv + 安装依赖）
+# 1. 一键初始化（Python venv + xiaohongshu-mcp 服务 + mcporter 注册）
 VENV=$(.claude/skills/xhs-fashion-search/scripts/ensure_env.sh)
 
-# 2. 配置 FASHN API Key（虚拟试穿需要，已有 key 直接填入，没有去 https://fashn.ai 注册）
+# 2. 配置 FASHN API Key（虚拟试穿用，可跳过）
 echo 'export FASHN_API_KEY=你的key' > .env
 
-# 3. 启动 xiaohongshu-mcp 服务
-#    mcporter 会根据 config/mcporter.json 在 localhost:18060 启动服务。
-mcporter start
-
-# 4. 登录小红书（首次使用前需要扫码登录）
-#    返回 JSON 中 qr_image_path 字段是二维码图片路径。
-#    AI agent 应直接运行此命令并将二维码展示给用户，不要让用户自己执行。
+# 3. 登录小红书
 $VENV/bin/xhs login start --wait --json
 ```
+
+`ensure_env.sh` 会自动完成：
+- 创建 Python venv 并安装 xhs CLI 和 fashn-tryon CLI
+- 从 GitHub Releases 下载 xiaohongshu-mcp 二进制（按平台自动选择）
+- macOS 上配置 launchd 保活服务，Linux 上后台启动
+- 向 mcporter 注册服务端点
+
+已安装过的环境重复运行会秒返回（幂等）。
 
 > **给 AI agent 的提示**：安装完成后应主动执行登录命令并将二维码图片发送给用户，用户只需要扫码，不需要手动运行任何命令。
 
@@ -79,22 +74,25 @@ Key commands:
 ## 架构
 
 ```
-xhs CLI  ──→  mcporter call  ──→  xiaohongshu-mcp (localhost:18060)
-                                         │
-                                    小红书 API
+xhs CLI ──subprocess──→ mcporter call ──HTTP──→ xiaohongshu-mcp (Go, localhost:18060)
+                                                       │
+                                                  小红书 API
+
+fashn-tryon CLI ──HTTP──→ FASHN API (api.fashn.ai/v1)
 ```
 
-- `xhs_cli/` — 搜索 CLI，通过 mcporter 调用 xiaohongshu-mcp 服务
-- `xhs-tryon/fashn_tryon/` — 虚拟试穿 CLI，调用 FASHN API
-- `config/mcporter.json` — mcporter 服务配置
+- `xhs_cli/` — 搜索 CLI (typer)，通过 mcporter 调用 xiaohongshu-mcp 服务
+- `xhs-tryon/fashn_tryon/` — 虚拟试穿 CLI (argparse)，调用 FASHN API
+- [`xiaohongshu-mcp`](https://github.com/xpzouying/xiaohongshu-mcp) — Go 服务，Docker 或原生二进制运行在 localhost:18060
+- `config/mcporter.json` — mcporter 服务端点配置（指向 localhost:18060）
 - `.claude/skills/xhs-fashion-search/` — Claude Code / OpenClaw skill 定义
 
 ## 故障排查
 
-**mcporter 启动失败**：检查 `config/mcporter.json` 配置是否正确，确保端口 18060 未被占用。
-
-**搜索返回 `requires_login`**：运行 `xhs login start --wait --json` 重新扫码登录。
-
-**虚拟试穿报错 `FASHN_API_KEY is not set`**：确保运行前执行了 `source .env`。
-
-**Playwright 报错**：运行 `$VENV/bin/playwright install chromium` 安装浏览器。
+| 问题 | 解决 |
+|------|------|
+| 搜索报 `service_unavailable` | 检查 launchd 服务：`launchctl list \| grep xiaohongshu`，若无则重新 load plist |
+| 端口 18060 被占用 | `lsof -i :18060` 查看占用进程 |
+| 搜索返回 `requires_login` | 运行 `$VENV/bin/xhs login start --wait --json` 重新扫码登录 |
+| `mcporter` 找不到 | `npm install -g mcporter` |
+| 虚拟试穿报 `FASHN_API_KEY is not set` | 确保 `.env` 文件存在且包含 key，运行前 `source .env` |

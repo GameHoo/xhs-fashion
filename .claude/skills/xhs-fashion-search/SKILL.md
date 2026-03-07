@@ -398,3 +398,27 @@ open /tmp/xhs-tryon/tryon_.../results/<job_id>/output_001.png
 - 问题逐个问，不要一次列出所有问题轰炸用户
 - 用户随时可以跳过问题或直接给出搜索词
 - 如果用户中途改主意，灵活调整，不要死板地走流程
+
+### OpenClaw 环境消息顺序
+
+在 OpenClaw 环境中，assistant 的 `text` 输出和 `message` 工具调用走不同的投递路径，可能导致消息乱序（比如拼图先到、状态文字后到）。
+
+**规则：当后续需要通过 `message` 工具发送图片/媒体时，状态文字也必须通过 `message` 工具发送，不要用纯文本输出。**
+
+错误示例（会乱序）：
+```
+# 文本输出 — 走 block reply 管道
+"筛完了，帮你拼图看看～"
+# 然后调用 message 工具发图 — 走 message 工具管道
+message({ message: "编号 1~4", filePath: "collage_1.jpg" })
+```
+
+正确示例（顺序保证）：
+```
+# 先用 message 工具发状态文字
+message({ message: "筛完了，帮你拼图看看～" })
+# 再用 message 工具发图
+message({ message: "编号 1~4", filePath: "collage_1.jpg" })
+```
+
+简单来说：**OpenClaw 环境下，如果同一轮要发多条消息，全部用 `message` 工具按顺序发，不要混用文本输出和 `message` 工具。**

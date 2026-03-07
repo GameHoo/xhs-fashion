@@ -238,7 +238,11 @@ MBTI 不直接拼入搜索词，但用于辅助下一步的风格推荐排序（
 
 根据当前运行环境选择展示方式：
 
-**Claude Code 环境**：用 `Read` 工具依次读取 3 张拼图展示给用户。
+**Claude Code 环境**：用 `Bash` 工具执行 `open` 命令打开拼图，让用户在系统图片查看器中预览：
+
+```bash
+open /tmp/xhs_collage_1.jpg /tmp/xhs_collage_2.jpg /tmp/xhs_collage_3.jpg
+```
 
 **OpenClaw 环境**：用 `message` 工具发送图片，每张拼图一条消息：
 
@@ -332,7 +336,11 @@ source "<project-root>/.env" && <venv>/bin/fashn-tryon run \
 
 从 `fashn-tryon` 的 JSON 输出中，读取每个 job 的结果图片路径（在 `results/<job_id>/` 下）。
 
-**Claude Code 环境**：用 `Read` 工具展示给用户。
+**Claude Code 环境**：用 `Bash` 工具执行 `open` 命令打开试穿结果图，让用户在系统图片查看器中预览：
+
+```bash
+open /tmp/xhs-tryon/tryon_.../results/<job_id>/output_001.png
+```
 
 **OpenClaw 环境**：用 `message` 工具发送图片，每张试穿结果一条消息：
 

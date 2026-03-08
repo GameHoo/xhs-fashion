@@ -2,6 +2,8 @@
 
 小红书穿搭搜索 + AI 虚拟试穿。通过 AI Skill 引导用户找到合适的穿搭，搜索小红书获取灵感图，再用 FASHN 虚拟试穿看效果。支持 Claude Code 和 OpenClaw。
 
+> **小龙虾（OpenClaw）用户？** 不需要看下面的安装步骤，直接看 → [OpenClaw 安装指南](docs/openclaw-setup.md)
+
 ## 前置依赖
 
 源码 checkout 后直接运行 `.claude/skills/xhs-fashion-search/scripts/ensure_env.sh` 时，需要先准备：
@@ -10,9 +12,9 @@
 - **Node.js >= 18**（`brew install node`）
 - `mcporter`（`npm install -g mcporter`）
 
-`ensure_env.sh` 现在会先检查 `uv` 和 `mcporter`，缺任何一个都会立刻退出，不再继续返回一个“看起来可用”的 venv 路径。
+`ensure_env.sh` 现在会先检查 `uv` 和 `mcporter`，缺任何一个都会立刻退出，不再继续返回一个”看起来可用”的 venv 路径。
 
-## 安装
+## 安装（Claude Code / 源码）
 
 ```bash
 # 0. 先装前置依赖
@@ -40,19 +42,6 @@ $VENV/bin/xhs login start --wait --json
 已安装过的环境重复运行会秒返回（幂等）。
 
 > **给 AI agent 的提示**：安装完成后应主动执行登录命令并将二维码图片发送给用户，用户只需要扫码，不需要手动运行任何命令。
-
-## OpenClaw 安装 Skill
-
-一行命令，不需要 clone 整个项目：
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh | bash
-```
-
-脚本会自动下载 skill 文件、创建 Python 环境、安装 CLI 工具和 xiaohongshu-mcp 服务。
-这一条安装路径会自动安装 `uv` 和 `mcporter`，所以只要求本机已有 Node.js/npm。
-
-详见 [OpenClaw 安装指南](docs/openclaw-setup.md)。
 
 ## CLI 命令
 

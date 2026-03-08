@@ -14,6 +14,13 @@
 
 `ensure_env.sh` 现在会先检查 `uv` 和 `mcporter`，缺任何一个都会立刻退出，不再继续返回一个”看起来可用”的 venv 路径。
 
+如果本机 `18060` 端口已被占用，可先切到其他端口再初始化：
+
+```bash
+export XHS_MCP_PORT=18061
+VENV=$(.claude/skills/xhs-fashion-search/scripts/ensure_env.sh)
+```
+
 ## 安装（Claude Code / 源码）
 
 ```bash
@@ -89,7 +96,7 @@ fashn-tryon CLI ──HTTP──→ FASHN API (api.fashn.ai/v1)
 | 问题 | 解决 |
 |------|------|
 | 搜索报 `service_unavailable` | 检查 launchd 服务：`launchctl list \| grep xiaohongshu`，若无则重新 load plist |
-| 端口 18060 被占用 | `lsof -i :18060` 查看占用进程 |
+| 端口 18060 被占用 | `lsof -i :18060` 查看占用进程；或 `export XHS_MCP_PORT=18061` 后重跑 `ensure_env.sh` |
 | 搜索返回 `requires_login` | 运行 `$VENV/bin/xhs login start --wait --json` 重新扫码登录 |
 | `mcporter` 找不到 | `npm install -g mcporter` |
 | 虚拟试穿报 `FASHN_API_KEY is not set` | 确保项目根目录 `.env` 存在，内容形如 `export FASHN_API_KEY=fa-xxx`，运行前 `source .env` |

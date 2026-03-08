@@ -41,6 +41,7 @@ uv run pytest tests/test_runtime.py::TestClassName::test_name -v  # single test
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `FASHN_API_KEY` | FASHN virtual try-on API key (stored in `.env` as `export FASHN_API_KEY=...`) | — |
+| `XHS_MCP_PORT` | Local `xiaohongshu-mcp` listen port used by bootstrap scripts | `18060` |
 | `XHS_CLI_SERVICE_URL` | MCP service endpoint | `http://localhost:18060/mcp` |
 | `XHS_CLI_COOKIE_FILE` | XHS cookie storage path | `~/.agent-reach/xiaohongshu-mcp/data/cookies.json` |
 | `XHS_CLI_STATE_DIR` | CLI persistent state (QR codes, login state) | `~/.xhs-cli` |

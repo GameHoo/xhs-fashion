@@ -22,6 +22,9 @@ fi
 GITHUB_REPO="GameHoo/xhs-fashion"
 UV_BIN=""
 MCPORTER_BIN=""
+XHS_CLI_STATE_DIR="${XHS_CLI_STATE_DIR:-$HOME/.xhs-cli}"
+XHS_MCP_PORT_FILE="${XHS_CLI_STATE_DIR}/mcp_port"
+XHS_SERVICE_URL_FILE="${XHS_CLI_STATE_DIR}/service_url"
 
 resolve_uv() {
     local uv
@@ -62,11 +65,33 @@ require_mcporter() {
 # --- xiaohongshu-mcp settings ---
 XHS_MCP_BASE="$HOME/.agent-reach/xiaohongshu-mcp"
 XHS_MCP_BIN="$HOME/.local/bin/xiaohongshu-mcp"
-XHS_MCP_PORT="${XHS_MCP_PORT:-18060}"
-XHS_MCP_URL="http://localhost:${XHS_MCP_PORT}"
+DEFAULT_XHS_MCP_PORT="18060"
+XHS_MCP_PORT="${XHS_MCP_PORT:-}"
+XHS_MCP_URL=""
 XHS_MCP_REPO="xpzouying/xiaohongshu-mcp"
 LAUNCHD_LABEL="com.codex.xiaohongshu-mcp"
 LAUNCHD_PLIST="$HOME/Library/LaunchAgents/${LAUNCHD_LABEL}.plist"
+
+resolve_xhs_mcp_port() {
+    local port="${XHS_MCP_PORT:-}"
+    if [[ -z "$port" && -f "$XHS_MCP_PORT_FILE" ]]; then
+        port="$(tr -d '[:space:]' < "$XHS_MCP_PORT_FILE")"
+    fi
+    if [[ -z "$port" ]]; then
+        port="$DEFAULT_XHS_MCP_PORT"
+    fi
+    if [[ ! "$port" =~ ^[0-9]+$ ]] || (( port < 1 || port > 65535 )); then
+        echo "ERROR: Invalid XHS_MCP_PORT: $port" >&2
+        return 1
+    fi
+    echo "$port"
+}
+
+persist_service_settings() {
+    mkdir -p "$XHS_CLI_STATE_DIR"
+    printf '%s\n' "$XHS_MCP_PORT" > "$XHS_MCP_PORT_FILE"
+    printf '%s\n' "${XHS_MCP_URL}/mcp" > "$XHS_SERVICE_URL_FILE"
+}
 
 # =====================================================================
 #  1. Python venv
@@ -213,6 +238,8 @@ install_launchd() {
   <key>ProgramArguments</key>
   <array>
     <string>${XHS_MCP_BIN}</string>
+    <string>-port</string>
+    <string>:${XHS_MCP_PORT}</string>
   </array>
   <key>WorkingDirectory</key>
   <string>${XHS_MCP_BASE}/data</string>
@@ -250,6 +277,7 @@ start_background() {
     fi
     mkdir -p "${XHS_MCP_BASE}/data" "${XHS_MCP_BASE}/logs"
     nohup "$XHS_MCP_BIN" \
+        -port ":${XHS_MCP_PORT}" \
         > "${XHS_MCP_BASE}/logs/stdout.log" \
         2> "${XHS_MCP_BASE}/logs/stderr.log" &
     echo "Started xiaohongshu-mcp in background (PID: $!)" >&2
@@ -318,6 +346,9 @@ setup_xhs_mcp() {
 # =====================================================================
 require_uv || exit 1
 require_mcporter || exit 1
+XHS_MCP_PORT="$(resolve_xhs_mcp_port)" || exit 1
+XHS_MCP_URL="http://localhost:${XHS_MCP_PORT}"
+persist_service_settings
 setup_venv || exit 1
 setup_xhs_mcp || exit 1
 

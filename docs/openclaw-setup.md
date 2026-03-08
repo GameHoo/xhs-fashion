@@ -6,6 +6,12 @@
 
 一键安装只需 **Node.js >= 18**（`brew install node`）。`install.sh` 会自动安装 `uv` 和 `mcporter`。
 
+如果本机 `18060` 端口已被占用，可以先换端口再安装：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh | env XHS_MCP_PORT=18061 bash
+```
+
 ## 安装步骤
 
 ### 一键安装（推荐）
@@ -48,6 +54,6 @@ echo 'export FASHN_API_KEY=fa-xxx' >> ~/.openclaw/skills/xhs-fashion-search/.env
 | ensure_env.sh 报错 `uv not found` | 重跑 `install.sh`（会自动安装 uv） |
 | 搜索报 `service_unavailable` | 检查服务：`launchctl list \| grep xiaohongshu`，若无则重跑 `ensure_env.sh` |
 | 搜索返回 `requires_login` | 发送「重新登录小红书」让 skill 重新生成二维码 |
-| 端口 18060 被占用 | `lsof -i :18060` 查看占用进程 |
+| 端口 18060 被占用 | `lsof -i :18060` 查看占用进程；也可重装到其他端口：`curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh \| env XHS_MCP_PORT=18061 bash` |
 | `mcporter` 找不到 | 重跑 `install.sh`（会自动安装），或手动 `npm install -g mcporter` |
 | 试穿报错 `FASHN_API_KEY is not set` | 确认 `.env` 文件存在且包含 `export FASHN_API_KEY=fa-xxx`（在 `~/.openclaw/skills/xhs-fashion-search/`） |

@@ -19,7 +19,36 @@ from urllib.request import Request, urlopen
 
 logger = logging.getLogger(__name__)
 
-SERVICE_URL = os.getenv("XHS_CLI_SERVICE_URL", "http://localhost:18060/mcp")
+DEFAULT_STATE_DIR = Path(os.getenv("XHS_CLI_STATE_DIR", str(Path.home() / ".xhs-cli")))
+STATE_DIR = DEFAULT_STATE_DIR
+STATE_FILE = STATE_DIR / "state.json"
+SERVICE_URL_FILE = STATE_DIR / "service_url"
+MCP_PORT_FILE = STATE_DIR / "mcp_port"
+
+
+def resolve_service_url() -> str:
+    configured = os.getenv("XHS_CLI_SERVICE_URL")
+    if configured:
+        return configured
+
+    for path in (SERVICE_URL_FILE, MCP_PORT_FILE):
+        try:
+            if not path.exists():
+                continue
+            value = path.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if not value:
+            continue
+        if path == SERVICE_URL_FILE:
+            return value
+        if value.isdigit():
+            return f"http://localhost:{value}/mcp"
+
+    return "http://localhost:18060/mcp"
+
+
+SERVICE_URL = resolve_service_url()
 LAUNCHD_LABEL = os.getenv("XHS_CLI_LAUNCHD_LABEL", "com.codex.xiaohongshu-mcp")
 COOKIE_FILE = Path(
     os.getenv(
@@ -27,8 +56,6 @@ COOKIE_FILE = Path(
         str(Path.home() / ".agent-reach" / "xiaohongshu-mcp" / "data" / "cookies.json"),
     )
 )
-STATE_DIR = Path(os.getenv("XHS_CLI_STATE_DIR", str(Path.home() / ".xhs-cli")))
-STATE_FILE = STATE_DIR / "state.json"
 DEFAULT_QR_PATH = STATE_DIR / "login-qrcode.png"
 LOGIN_PROBE_KEYWORD = os.getenv("XHS_CLI_LOGIN_PROBE_KEYWORD", "穿搭")
 USER_AGENT = (

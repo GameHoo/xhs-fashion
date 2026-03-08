@@ -24,7 +24,7 @@ curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh
 - 下载 skill 文件到 `~/.openclaw/skills/xhs-fashion-search/`
 - 创建 Python venv 并安装 CLI 工具（从 GitHub 安装，无需 clone 项目）
 - 下载 xiaohongshu-mcp 二进制并启动服务
-- 注册 mcporter 服务端点
+- 注册 mcporter 服务端点（写入 `~/.mcporter/mcporter.json`，不依赖执行安装命令时所在目录）
 
 ### 配置 FASHN API Key（虚拟试穿用，可选）
 
@@ -53,6 +53,7 @@ echo 'export FASHN_API_KEY=fa-xxx' >> ~/.openclaw/skills/xhs-fashion-search/.env
 | skill 没有触发 | 检查文件存在：`ls ~/.openclaw/skills/xhs-fashion-search/SKILL.md` |
 | ensure_env.sh 报错 `uv not found` | 重跑 `install.sh`（会自动安装 uv） |
 | 搜索报 `service_unavailable` | 检查服务：`launchctl list \| grep xiaohongshu`，若无则重跑 `ensure_env.sh` |
+| `mcporter` 指到了旧端口/旧配置 | 检查：`mcporter config get xiaohongshu --json`；重跑 `install.sh` 会覆盖 `~/.mcporter/mcporter.json` 中的端点 |
 | 搜索返回 `requires_login` | 发送「重新登录小红书」让 skill 重新生成二维码 |
 | 端口 18060 被占用 | `lsof -i :18060` 查看占用进程；也可重装到其他端口：`curl -fsSL https://raw.githubusercontent.com/GameHoo/xhs-fashion/main/install.sh \| env XHS_MCP_PORT=18061 bash` |
 | `mcporter` 找不到 | 重跑 `install.sh`（会自动安装），或手动 `npm install -g mcporter` |

@@ -42,7 +42,7 @@ $VENV/bin/xhs login start --wait --json
 - 创建 Python venv 并安装 xhs CLI 和 fashn-tryon CLI
 - 从 GitHub Releases 下载 xiaohongshu-mcp 二进制（按平台自动选择）
 - macOS 上配置 launchd 保活服务，Linux 上后台启动
-- 向 mcporter 注册服务端点
+- 向 mcporter 注册服务端点（源码模式写入 `config/mcporter.json`；独立安装写入 `~/.mcporter/mcporter.json`）
 
 如果 `mcporter` 缺失，或者 `xiaohongshu-mcp` 最终没有成功启动，脚本会直接失败退出。
 
@@ -88,7 +88,7 @@ fashn-tryon CLI ──HTTP──→ FASHN API (api.fashn.ai/v1)
 - `xhs_cli/` — 搜索 CLI (typer)，通过 mcporter 调用 xiaohongshu-mcp 服务
 - `xhs-tryon/fashn_tryon/` — 虚拟试穿 CLI (argparse)，调用 FASHN API
 - [`xiaohongshu-mcp`](https://github.com/xpzouying/xiaohongshu-mcp) — Go 服务，Docker 或原生二进制运行在 localhost:18060
-- `config/mcporter.json` — mcporter 服务端点配置（指向 localhost:18060）
+- `config/mcporter.json` — 仓库源码模式下的 mcporter 服务端点配置（独立安装写入 `~/.mcporter/mcporter.json`）
 - `.claude/skills/xhs-fashion-search/` — Claude Code / OpenClaw skill 定义
 
 ## 故障排查

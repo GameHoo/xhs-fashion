@@ -285,16 +285,22 @@ start_background() {
 
 # Register with mcporter
 ensure_mcporter_config() {
-    # Check if already configured
-    if "$MCPORTER_BIN" config list 2>/dev/null | grep -q "xiaohongshu"; then
-        return 0
+    local target_url="${XHS_MCP_URL}/mcp"
+    local args=(config add xiaohongshu "$target_url")
+
+    # Standalone OpenClaw installs must not depend on the install-time cwd.
+    if [[ "$STANDALONE" == true ]]; then
+        args+=(--scope home)
+    else
+        mkdir -p "${PROJECT_ROOT}/config"
+        args+=(--persist "${PROJECT_ROOT}/config/mcporter.json")
     fi
 
-    if ! "$MCPORTER_BIN" config add xiaohongshu "${XHS_MCP_URL}/mcp" >/dev/null 2>&1; then
+    if ! "$MCPORTER_BIN" "${args[@]}" >/dev/null 2>&1; then
         echo "ERROR: Failed to register xiaohongshu with mcporter" >&2
         return 1
     fi
-    echo "Registered xiaohongshu with mcporter" >&2
+    echo "Registered xiaohongshu with mcporter (${target_url})" >&2
 }
 
 # Main: ensure xiaohongshu-mcp is running

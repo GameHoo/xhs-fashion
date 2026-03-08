@@ -15,8 +15,6 @@ from pathlib import Path
 
 from PIL import Image
 
-MIN_PIECE_SIZE = 256
-
 
 def _line_variance(pixels, fixed: int, length: int, axis: str, step: int = 4) -> float:
     """Compute variance along a row or column, sampling every *step* pixels."""
@@ -106,7 +104,6 @@ def split_image(
     image_path: str,
     output_dir: str,
     grid: tuple[int, int] | None = None,
-    min_size: int = MIN_PIECE_SIZE,
 ) -> dict:
     """Split a collage image into individual pieces.
 
@@ -142,16 +139,6 @@ def split_image(
     if len(v_regions) != cols:
         piece_w = w // cols
         v_regions = [(i * piece_w, min((i + 1) * piece_w, w)) for i in range(cols)]
-
-    # Check minimum piece size
-    min_pw = min(r - l for l, r in v_regions)
-    min_ph = min(b - t for t, b in h_regions)
-    if min_pw < min_size or min_ph < min_size:
-        return {
-            "status": "too_small",
-            "message": f"Split pieces would be ~{min_pw}x{min_ph}px, below minimum {min_size}px",
-            "grid": f"{cols}x{rows}",
-        }
 
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -209,9 +196,6 @@ def main() -> None:
     sp.add_argument("--image", required=True, help="Input collage image path")
     sp.add_argument("--output-dir", required=True, help="Output directory for pieces")
     sp.add_argument("--grid", help="Grid spec like '2x2' or '3x3'. Auto-detects if omitted.")
-    sp.add_argument(
-        "--min-size", type=int, default=MIN_PIECE_SIZE, help="Minimum piece dimension in px"
-    )
 
     rp = sub.add_parser("reassemble", help="Reassemble pieces into a grid")
     rp.add_argument("--pieces", nargs="+", required=True, help="Piece image paths (row-major)")
@@ -225,7 +209,7 @@ def main() -> None:
         if args.grid:
             parts = args.grid.lower().split("x")
             grid = (int(parts[0]), int(parts[1]))
-        result = split_image(args.image, args.output_dir, grid=grid, min_size=args.min_size)
+        result = split_image(args.image, args.output_dir, grid=grid)
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     elif args.command == "reassemble":

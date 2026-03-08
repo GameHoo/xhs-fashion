@@ -8,7 +8,7 @@ sys.path.insert(
     0,
     str(Path(__file__).resolve().parents[1] / ".claude" / "skills" / "xhs-fashion-search" / "scripts"),
 )
-from split_collage import detect_grid, reassemble, split_image
+from split_collage import detect_grid, reassemble, split_image  # noqa: E402
 
 
 def _make_solid(path: Path, color: str, size: tuple[int, int] = (400, 400)) -> None:
@@ -118,15 +118,6 @@ def test_split_not_a_collage(tmp_path):
 
     assert result["status"] == "not_a_collage"
 
-
-def test_split_too_small(tmp_path):
-    collage = tmp_path / "tiny.jpg"
-    _make_grid_collage(collage, cols=3, rows=3, cell_size=(80, 80), gap=4)
-    out_dir = tmp_path / "splits"
-
-    result = split_image(str(collage), str(out_dir), min_size=256)
-
-    assert result["status"] == "too_small"
 
 
 def test_split_3x3(tmp_path):

@@ -84,6 +84,7 @@ echo "Downloading skill files..."
 curl -fsSL "$BASE_URL/SKILL.md"                -o "$SKILL_DIR/SKILL.md"
 curl -fsSL "$BASE_URL/scripts/ensure_env.sh"   -o "$SKILL_DIR/scripts/ensure_env.sh"
 curl -fsSL "$BASE_URL/scripts/make_collage.py"  -o "$SKILL_DIR/scripts/make_collage.py"
+curl -fsSL "$BASE_URL/scripts/split_collage.py" -o "$SKILL_DIR/scripts/split_collage.py"
 chmod +x "$SKILL_DIR/scripts/ensure_env.sh"
 
 # =====================================================================

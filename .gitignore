@@ -10,3 +10,7 @@ __pycache__/
 .claude/skills/skill-creator/
 .agents/
 MediaCrawler/
+build/
+dist/
+*.spec
+tests/test files/
